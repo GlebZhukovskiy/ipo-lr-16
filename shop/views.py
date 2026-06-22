@@ -9,21 +9,40 @@ from .models import Product, Category, Manufacturer, Cart, CartItem
 
 # ... (предыдущие функции product_list, product_detail, cart_view, add_to_cart, update_cart, remove_from_cart остаются без изменений) ...
 
+from django.core.paginator import Paginator
+
 def product_list(request):
-    products = Product.objects.all()
+    products = Product.objects.all().order_by('id')
     categories = Category.objects.all()
     manufacturers = Manufacturer.objects.all()
+    
+    # Фильтрация
     search_query = request.GET.get('search', '')
     if search_query:
         products = products.filter(Q(name__icontains=search_query) | Q(description__icontains=search_query))
+        
     category_id = request.GET.get('category')
     if category_id:
         products = products.filter(category_id=category_id)
+        
     manufacturer_id = request.GET.get('manufacturer')
     if manufacturer_id:
         products = products.filter(manufacturer_id=manufacturer_id)
-    return render(request, 'shop/product_list.html', {'products': products, 'categories': categories, 'manufacturers': manufacturers})
-
+        
+    # Пагинация — по 9 товаров на странице
+    paginator = Paginator(products, 9)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'page_obj': page_obj,
+        'categories': categories,
+        'manufacturers': manufacturers,
+        'search_query': search_query,
+        'category_id': category_id,
+        'manufacturer_id': manufacturer_id
+    }
+    return render(request, 'shop/catalog.html', context)
 def product_detail(request, pk):
     product = get_object_or_404(Product, pk=pk)
     return render(request, 'shop/product_detail.html', {'product': product})
@@ -149,3 +168,8 @@ class CartViewSet(viewsets.ModelViewSet):
 class CartItemViewSet(viewsets.ModelViewSet):
     queryset = CartItem.objects.all()
     serializer_class = CartItemSerializer
+
+def index(request):
+    popular_products = Product.objects.all().order_by('-id')[:6] # последние 6 добавленных
+    categories = Category.objects.all()
+    return render(request, 'shop/index.html', {'products': popular_products, 'categories': categories})

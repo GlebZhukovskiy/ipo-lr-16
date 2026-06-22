@@ -13,6 +13,8 @@ router.register(r'cart-items', views.CartItemViewSet)
 app_name = 'shop'
 
 urlpatterns = [
+    path('', views.index, name='index'),
+    path('catalog/', views.product_list, name='catalog'), # Твоя старая функция product_list теперь будет каталогом
     # Твои старые маршруты для обычных страниц (примерные, оставь свои как есть):
     path('', views.product_list, name='product_list'),
     path('product/<int:pk>/', views.product_detail, name='product_detail'),

@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row">
+    <div class="col-md-3 mb-4">
+        <div class="card p-3 shadow-sm border-0">
+            <h5 class="fw-bold mb-3">Фильтры</h5>
+            <form method="GET" action="{% url 'shop:catalog' %}">
+                
+                <div class="mb-3">
+                    <label class="form-label text-muted">Поиск</label>
+                    <input type="text" name="search" class="form-control" placeholder="Название игры..." value="{{ search_query }}">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label text-muted">Категория</label>
+                    <select name="category" class="form-select">
+                        <option value="">Все категории</option>
+                        {% for cat in categories %}
+                        <option value="{{ cat.id }}" {% if category_id == cat.id|stringformat:"i" %}selected{% endif %}>{{ cat.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label text-muted">Производитель</label>
+                    <select name="manufacturer" class="form-select">
+                        <option value="">Все производители</option>
+                        {% for man in manufacturers %}
+                        <option value="{{ man.id }}" {% if manufacturer_id == man.id|stringformat:"i" %}selected{% endif %}>{{ man.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 rounded-pill mb-2">Применить</button>
+                <a href="{% url 'shop:catalog' %}" class="btn btn-light w-100 rounded-pill border">Сбросить</a>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-md-9">
+        <h2 class="fw-bold mb-4">Каталог игр</h2>
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4">
+            {% for product in page_obj %}
+            <div class="col">
+                <div class="card h-100 shadow-sm border-0">
+                    {% if product.image %}
+                        <img src="{{ product.image.url }}" class="card-img-top p-3" alt="{{ product.name }}" style="height: 200px; object-fit: contain;">
+                    {% endif %}
+                    <div class="card-body d-flex flex-column">
+                        <h6 class="card-title fw-bold text-dark">{{ product.name }}</h6>
+                        <p class="fs-5 fw-bold text-primary mt-auto mb-3">{{ product.price }} ₽</p>
+                        <a href="{% url 'shop:product_detail' product.pk %}" class="btn btn-dark w-100 rounded-pill btn-sm">Подробнее</a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <p class="text-center text-muted my-5">Игры с такими параметрами не найдены.</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if page_obj.has_other_pages %}
+        <nav class="mt-5">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if category_id %}&category={{ category_id }}{% endif %}{% if manufacturer_id %}&manufacturer={{ manufacturer_id }}{% endif %}">&laquo;</a></li>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                    <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                        <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if category_id %}&category={{ category_id }}{% endif %}{% if manufacturer_id %}&manufacturer={{ manufacturer_id }}{% endif %}">{{ num }}</a>
+                    </li>
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if category_id %}&category={{ category_id }}{% endif %}{% if manufacturer_id %}&manufacturer={{ manufacturer_id }}{% endif %}">&raquo;</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
