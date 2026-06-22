@@ -121,11 +121,59 @@ REST_FRAMEWORK = {
     ],
 }
 import os
+from pathlib import Path
+import dj_database_url
+from decouple import config
 
-# Путь к папке со статикой
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Читаем из .env или переменных окружения сервера
+SECRET_KEY = config('SECRET_KEY', default='fallback-secret-key')
+DEBUG = config('DEBUG', default=False, cast=bool)
+
+# Парсим ALLOWED_HOSTS из строки через запятую
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
+# Добавляем домен Railway для продакшна
+if not DEBUG:
+    ALLOWED_HOSTS.append('.up.railway.app')
+
+# MIDDLEWARE: Добавляем WhiteNoise сразу после SecurityMiddleware
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware', # НАДО ДОБАВИТЬ СЮДА
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
+
+# НАСТРОЙКА БАЗЫ ДАННЫХ: Локально SQLite, на Railway — PostgreSQL
+DATABASE_URL = config('DATABASE_URL', default=None)
+
+if DATABASE_URL:
+    DATABASES = {
+        'default': dj_database_url.config(default=DATABASE_URL, conn_max_age=600)
+    }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'LOCATION': BASE_DIR / 'db.sqlite3',
+        }
+    }
+
+# Настройки статики для WhiteNoise
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') # Папка, куда соберутся файлы при деплое
 
-# Путь к загружаемым картинкам (медиа)
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'products') # Так как папка с картинками у тебя называется products
+MEDIA_ROOT = os.path.join(BASE_DIR, 'products')
+
+# Настройки безопасности для продакшна (Задание 2)
+if not DEBUG:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_SSL_REDIRECT = True
