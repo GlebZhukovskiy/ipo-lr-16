@@ -1,0 +1,6 @@
+venv/
+pycache/
+*.sqlite3
+.vscode/
+media/
+products/

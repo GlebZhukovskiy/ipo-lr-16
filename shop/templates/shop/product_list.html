@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Каталог настольных игр</title>
+</head>
+<body>
+    <h1>Каталог товаров</h1>
+    <a href="{% url 'shop:cart_view' %}">Перейти в корзину</a>
+    <hr>
+
+    <form method="get" action="">
+        <input type="text" name="search" placeholder="Поиск игр..." value="{{ request.GET.search }}">
+        
+        <select name="category">
+            <option value="">Все категории</option>
+            {% for cat in categories %}
+                <option value="{{ cat.id }}" {% if request.GET.category == cat.id|stringformat:"i" %}selected{% endif %}>{{ cat.name }}</option>
+            {% endfor %}
+        </select>
+
+        <select name="manufacturer">
+            <option value="">Все производители</option>
+            {% for man in manufacturers %}
+                <option value="{{ man.id }}" {% if request.GET.manufacturer == man.id|stringformat:"i" %}selected{% endif %}>{{ man.name }}</option>
+            {% endfor %}
+        </select>
+
+        <button type="submit">Применить</button>
+        <a href="{% url 'shop:product_list' %}">Сбросить</a>
+    </form>
+    <hr>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 20px;">
+        {% for product in products %}
+            <div style="border: 1px solid #ccc; padding: 15px; width: 200px;">
+                {% if product.image %}
+                    <img src="{{ product.image.url }}" alt="{{ product.name }}" style="max-width: 100%; height: auto;">
+                {% endif %}
+                <h3><a href="{% url 'shop:product_detail' product.pk %}">{{ product.name }}</a></h3>
+                <p>Цена: {{ product.price }} руб.</p>
+                <p>В наличии: {{ product.stock }} шт.</p>
+                <a href="{% url 'shop:add_to_cart' product.id %}" style="background-color: green; color: white; padding: 5px 10px; text-decoration: none; display: inline-block;">Добавить в корзину</a>
+            </div>
+        {% empty %}
+            <p>Товары не найдены.</p>
+        {% endfor %}
+    </div>
+</body>
+</html>

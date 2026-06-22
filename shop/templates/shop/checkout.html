@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Оформление заказа</title>
+</head>
+<body>
+    <a href="{% url 'shop:cart_view' %}"><- Вернуться в корзину</a>
+    
+    {% if success %}
+        <h1 style="color: green;">Заказ успешно оформлен!</h1>
+        <p>Чек в формате Excel был сгенерирован и успешно отправлен вам на почту.</p>
+        <p>Количество купленных товаров автоматически списано со склада.</p>
+        <a href="{% url 'shop:product_list' %}">В каталог</a>
+    {% else %}
+        <h1>Оформление заказа</h1>
+        <h3>Ваш заказ:</h3>
+        <ul>
+            {% for item in cart.items.all %}
+                <li>{{ item.product.name }} — {{ item.quantity }} шт. ({{ item.item_cost }} руб.)</li>
+            {% endfor %}
+        </ul>
+        <h3>Итого к оплате: {{ cart.total_cost }} руб.</h3>
+        <hr>
+        <form method="post" action="">
+            {% csrf_token %}
+            <p>
+                <label for="address"><strong>Адрес доставки:</strong></label><br>
+                <textarea name="address" id="address" cols="40" rows="3" required placeholder="Введите ваш город, улицу, дом, квартиру..."></textarea>
+            </p>
+            <button type="submit" style="background-color: blue; color: white; padding: 10px 20px; font-size: 16px;">Подтвердить заказ и получить чек</button>
+        </form>
+    {% endif %}
+</body>
+</html>

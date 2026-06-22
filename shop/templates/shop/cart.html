@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Моя корзина</title>
+</head>
+<body>
+    <a href="{% url 'shop:product_list' %}"><- Вернуться в каталог</a>
+    <h1>Ваша корзина</h1>
+
+    {% if messages %}
+        {% for message in messages %}
+            <p style="color: red;"><strong>{{ message }}</strong></p>
+        {% endfor %}
+    {% endif %}
+
+    {% if cart.items.all %}
+        <table border="1" cellpadding="10" cellspacing="0">
+            <thead>
+                <tr>
+                    <th>Товар</th>
+                    <th>Цена за шт.</th>
+                    <th>Количество</th>
+                    <th>Стоимость</th>
+                    <th>Действие</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in cart.items.all %}
+                <tr>
+                    <td>{{ item.product.name }}</td>
+                    <td>{{ item.product.price }} руб.</td>
+                    <td>
+                        <form method="post" action="{% url 'shop:update_cart' item.id %}" style="display: inline;">
+                            {% csrf_token %}
+                            <input type="number" name="quantity" value="{{ item.quantity }}" min="1" max="{{ item.product.stock }}" style="width: 50px;">
+                            <button type="submit">Обновить</button>
+                        </form>
+                    </td>
+                    <td>{{ item.item_cost }} руб.</td>
+                    <td>
+                        <a href="{% url 'shop:remove_from_cart' item.id %}" style="color: red;">Удалить</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <h3>Общая стоимость: {{ cart.total_cost }} руб.</h3>
+    {% else %}
+        <p>Ваша корзина пуста.</p>
+    {% endif %}
+    <br><br>
+        <a href="{% url 'shop:checkout' %}" style="background-color: blue; color: white; padding: 10px 20px; text-decoration: none; display: inline-block; font-size: 16px;">Перейти к оформлению заказа</a>
+</body>
+</html>
